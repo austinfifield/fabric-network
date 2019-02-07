@@ -1,0 +1,37 @@
+version: '2'
+
+networks:
+  fabricbros:
+
+
+services:
+
+  chaincode:
+    container_name: chaincode
+    image: hyperledger/fabric-ccenv
+    tty: true
+    environment:
+      - GOPATH=/opt/gopath
+      - CORE_VM_ENDPOINT=unix:///host/var/run/docker.sock
+      - CORE_LOGGING_LEVEL=DEBUG
+      - CORE_CHAINCODE_LOGGING_LEVEL=DEBUG
+      - CORE_CHAINCODE_LOGGING_SHIM=DEBUG
+      - CORE_PEER_ID=peer0.org1.example.com # req
+      - CORE_PEER_ADDRESS=peer0.org1.example.com:7052 # req
+      - CORE_PEER_LOCALMSPID=DEFAULT
+      - CORE_PEER_MSPCONFIGPATH=/etc/hyperledger/msp/peer/msp
+      - CORE_CHAINCODE_ID_NAME=${CC_NAME}:${CC_VER} # req
+    working_dir: /opt/gopath/src/chaincode
+    command: /bin/bash -c "echo 'using $CC_NAME and $CC_VER' && go clean && go build -o ccgo && ./ccgo"
+    volumes:
+        - /var/run/:/host/var/run
+        - ./crypto/${FAB_CONFIG_GEN_VERS}/crypto-config/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/:/etc/hyperledger/msp/peer:ro
+        - ${FABRIC_CC_SRC}:/opt/gopath/src/chaincode
+        - ${GOPATH}:/opt/gopath
+        #MODIFY THIS
+#    depends_on:
+#      - orderer.example.com
+#      - peer0.org1.example.com
+#      - cli
+    networks:
+      - fabricbros
